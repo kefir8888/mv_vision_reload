@@ -22,10 +22,10 @@ class Blob:
         return self.h
 
     def cx (self):
-        return int ((self.x + self.w) / 2)
+        return int (self.x + self.w / 2)
 
     def cy (self):
-        return int ((self.y + self.h) / 2)
+        return int (self.y + self.h / 2)
 
     def rect (self):
         return (self.x, self.y, self.w, self.h)
@@ -38,7 +38,9 @@ class Image:
         low_th  = (th [0], th[2], th [4])
         high_th = (th [1], th[3], th [5])
 
-        mask = cv2.inRange (self.img, low_th, high_th)
+        labimg = cv2.cvtColor (self.img, cv2.COLOR_BGR2LAB)
+
+        mask = cv2.inRange (labimg, low_th, high_th)
 
         output = cv2.connectedComponentsWithStats (mask, 8, cv2.CV_32S)
 
