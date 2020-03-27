@@ -1,6 +1,7 @@
 import cv2
 import math
 import time
+import numpy as np
 
 class Blob:
     def __init__ (self, x_, y_, w_, h_):
@@ -29,6 +30,32 @@ class Blob:
 
     def rect (self):
         return (self.x, self.y, self.w, self.h)
+
+class Line:
+    def __init__ (self, x1_, y1_, x2_, y2_, theta_):
+        self.x1 = x1_
+        self.y1 = y1_
+        self.x2 = x2_
+        self.y2 = y2_
+        self.theta = theta_
+
+    def x1 (self):
+        return self.x1
+
+    def y1 (self):
+        return self.y1
+
+    def x2 (self):
+        return self.x2
+
+    def y2 (self):
+        return self.y2
+
+    def theta (self):
+        return self.theta
+
+    def line (self):
+        return (self.x1, self.y1, self.x2, self.y2)
 
 class Image:
     def __init__ (self, img_):
@@ -65,6 +92,37 @@ class Image:
 
         return blobs
 
+    def find_lines (self):
+        # - Почему Колумб приплыл в Америку, а не в Индию?
+        # - Потому что он плавал по одометрии
+
+        gray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+
+        #cv2.imshow ("a", edges)
+
+        #lines = cv2.HoughLines(edges, 5, np.pi / 18, 20)
+        lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 150)
+
+        resultant_lines = []
+
+        #print (lines)
+
+        for line in lines:
+            x1, y1, x2, y2 = line [0]
+
+            theta = math.atan ((y2 - y1) / (x2 - x1))
+
+            new_line = Line (x1, y1, x2, y2, theta)
+
+            resultant_lines.append (new_line)
+
+        return resultant_lines
+
+    def draw_line (self, line):
+        (x1, y1, x2, y2) = line
+        cv2.line (self.img, (x1, y1), (x2, y2), (0, 0, 255), 2)
+
     def draw_rectangle (self, rect):
         (x, y, w, h) = rect
         cv2.rectangle (self.img, (x, y), (x+w, y+h), (255, 0, 0), 3)
@@ -75,18 +133,24 @@ class Sensor:
         self.img = cv2.imread (self.filename)
 
     def snapshot (self):
-        return Image (self.img)
+        return Image (self.img.copy ())
 
 def main ():
     sensor = Sensor ("rgb_basket.jpg")
 
     while (True):
+        #print ("a")
         img = sensor.snapshot ()
 
-        blobs = img.find_blobs ((35, 50, 15, 75, 50, 135), 200, 20, True, 10)
+        #blobs = img.find_blobs ((35, 50, 15, 75, 50, 135), 200, 20, True, 10)
 
-        for blob in blobs:
-            img.draw_rectangle (blob.rect ())
+        #for blob in blobs:
+        #    img.draw_rectangle (blob.rect ())
+
+        lines = img.find_lines ()
+
+        for line in lines:
+            img.draw_line (line.line ())
 
         cv2.imshow ("objects", img.img)
 
