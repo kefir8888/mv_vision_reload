@@ -62,19 +62,22 @@ class Image:
         self.img = img_
 
     def find_blobs (self, th, pixels_threshold, area_threshold, merge, margin):
-        low_th  = (th [0], th[2], th [4])
-        high_th = (th [1], th[3], th [5])
+        low_th = (100, 100, 100)#(int(th[0] * 2.55), th[2] + 128, th[4] + 128)
+        high_th = (200, 200, 200)#(int(th[1] * 2.55), th[3] + 128, th[5] + 128)
 
         labimg = cv2.cvtColor (self.img, cv2.COLOR_BGR2LAB)
 
         mask = cv2.inRange (labimg, low_th, high_th)
 
+        cv2.imshow ("a", mask)
+
         output = cv2.connectedComponentsWithStats (mask, 8, cv2.CV_32S)
 
-        labels_count = output      [0]
-        labels       = output      [1]
+        #labels_count = output      [0]
+        #labels       = output      [1]
         stats        = output      [2]
-        sz           = stats.shape [0]
+        #labels_count, labels, stats = output[:3]
+        sz = stats.shape[0]
 
         blobs = []
 
@@ -104,7 +107,7 @@ class Image:
 
         for i in range(0, 3):
             result[:, :, i] = mask.copy()
-        
+
         return result
 
     def find_lines (self):
@@ -157,15 +160,16 @@ def main ():
         #print ("a")
         img = sensor.snapshot ()
 
-        #blobs = img.find_blobs ((35, 50, 15, 75, 50, 135), 200, 20, True, 10)
+        blobs = img.find_blobs ((40, 80, -28, 72, -28, 72), 200, 20, True, 10)
 
-        #for blob in blobs:
-        #    img.draw_rectangle (blob.rect ())
+        for blob in blobs:
+            #print ("a")
+            img.draw_rectangle (blob.rect ())
 
-        lines = img.find_lines ()
+        #lines = img.find_lines ()
 
-        for line in lines:
-            img.draw_line (line.line ())
+        #for line in lines:
+        #    img.draw_line (line.line ())
 
         cv2.imshow ("objects", img.img)
 
