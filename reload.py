@@ -92,6 +92,21 @@ class Image:
 
         return blobs
 
+    def binary (self, th):
+        low  = (th [0], th [2], th [4])
+        high = (th [1], th [3], th [5])
+
+        mask = cv2.inRange(self.img, low, high)
+
+        sh = mask.shape
+
+        result = np.zeros((sh[0], sh[1], 3), img.dtype)
+
+        for i in range(0, 3):
+            result[:, :, i] = mask.copy()
+        
+        return result
+
     def find_lines (self):
         # - Почему Колумб приплыл в Америку, а не в Индию?
         # - Потому что он плавал по одометрии
