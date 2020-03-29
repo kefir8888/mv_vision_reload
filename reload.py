@@ -5,71 +5,71 @@ import numpy as np
 
 class Blob:
     def __init__ (self, x_, y_, w_, h_):
-        self.x = x_
-        self.y = y_
-        self.w = w_
-        self.h = h_
+        self.x_ = x_
+        self.y_ = y_
+        self.w_ = w_
+        self.h_ = h_
 
     def x (self):
-        return self.x
+        return self.x_
 
     def y (self):
-        return self.y
+        return self.y_
 
     def w (self):
-        return self.w
+        return self.w_
 
     def h (self):
-        return self.h
+        return self.h_
 
     def cx (self):
-        return int (self.x + self.w / 2)
+        return int (self.x_ + self.w_ / 2)
 
     def cy (self):
-        return int (self.y + self.h / 2)
+        return int (self.y_ + self.h_ / 2)
 
     def rect (self):
-        return (self.x, self.y, self.w, self.h)
+        return (self.x_, self.y_, self.w_, self.h_)
 
 class Line:
     def __init__ (self, x1_, y1_, x2_, y2_, theta_):
-        self.x1 = x1_
-        self.y1 = y1_
-        self.x2 = x2_
-        self.y2 = y2_
-        self.theta = theta_
+        self.x1_ = x1_
+        self.y1_ = y1_
+        self.x2_ = x2_
+        self.y2_ = y2_
+        self.theta_ = theta_
 
     def x1 (self):
-        return self.x1
+        return self.x1_
 
     def y1 (self):
-        return self.y1
+        return self.y1_
 
     def x2 (self):
-        return self.x2
+        return self.x2_
 
     def y2 (self):
-        return self.y2
+        return self.y2_
 
     def theta (self):
-        return self.theta
+        return self.theta_
 
     def line (self):
-        return (self.x1, self.y1, self.x2, self.y2)
+        return (self.x1_, self.y1_, self.x2_, self.y2_)
 
 class Image:
     def __init__ (self, img_):
         self.img = img_
 
     def find_blobs (self, th, pixels_threshold, area_threshold, merge, margin):
-        low_th = (100, 100, 100)#(int(th[0] * 2.55), th[2] + 128, th[4] + 128)
-        high_th = (200, 200, 200)#(int(th[1] * 2.55), th[3] + 128, th[5] + 128)
+        low_th = (int(th[0] * 2.55), th[2] + 128, th[4] + 128)
+        high_th = (int(th[1] * 2.55), th[3] + 128, th[5] + 128)
 
         labimg = cv2.cvtColor (self.img, cv2.COLOR_BGR2LAB)
 
         mask = cv2.inRange (labimg, low_th, high_th)
 
-        cv2.imshow ("a", mask)
+        #cv2.imshow ("a", mask)
 
         output = cv2.connectedComponentsWithStats (mask, 8, cv2.CV_32S)
 
@@ -160,7 +160,8 @@ def main ():
         #print ("a")
         img = sensor.snapshot ()
 
-        blobs = img.find_blobs ((40, 80, -28, 72, -28, 72), 200, 20, True, 10)
+        #blobs = img.find_blobs ((40, 80, -28, 72, -28, 72), 200, 20, True, 10)
+        blobs = img.find_blobs ((35, 50, 15, 75, 50, 135), 200, 20, True, 10)
 
         for blob in blobs:
             #print ("a")
