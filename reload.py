@@ -61,17 +61,33 @@ class Image:
     def __init__ (self, img_):
         self.img = img_
 
-    def find_blobs (self, th, pixels_threshold, area_threshold, merge, margin):
-        low_th = (int(th[0] * 2.55), th[2] + 128, th[4] + 128)
-        high_th = (int(th[1] * 2.55), th[3] + 128, th[5] + 128)
+    def find_blobs (self, ths, pixels_threshold, area_threshold, merge, margin, invert = False):
+        masks = []
 
-        labimg = cv2.cvtColor (self.img, cv2.COLOR_BGR2LAB)
+        for th in ths:
+            low_th = (int(th[0] * 2.55), th[2] + 128, th[4] + 128)
+            high_th = (int(th[1] * 2.55), th[3] + 128, th[5] + 128)
 
-        mask = cv2.inRange (labimg, low_th, high_th)
+            labimg = cv2.cvtColor (self.img, cv2.COLOR_BGR2LAB)
+
+            mask = cv2.inRange (labimg, low_th, high_th)
+
+            if (invert == True):
+                mask = cv2.bitwise_not (mask)
+
+            masks.append (mask)
 
         #cv2.imshow ("a", mask)
 
-        output = cv2.connectedComponentsWithStats (mask, 8, cv2.CV_32S)
+        final_mask = masks [0].copy ()
+
+        if (len (masks) > 1):
+            for m in masks [1:]:
+                final_mask = cv2.bitwise_and (final_mask, m)
+
+        #print (final_mask.shape)
+
+        output = cv2.connectedComponentsWithStats (final_mask, 8, cv2.CV_32S)
 
         #labels_count = output      [0]
         #labels       = output      [1]
@@ -161,7 +177,7 @@ def main ():
         img = sensor.snapshot ()
 
         #blobs = img.find_blobs ((40, 80, -28, 72, -28, 72), 200, 20, True, 10)
-        blobs = img.find_blobs ((35, 50, 15, 75, 50, 135), 200, 20, True, 10)
+        blobs = img.find_blobs ([(35, 50, 15, 75, 50, 135)], 200, 20, True, 10)
 
         for blob in blobs:
             #print ("a")
