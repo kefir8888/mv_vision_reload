@@ -65,6 +65,7 @@ class Image:
         masks = []
 
         for th in ths:
+            #print ("a", th)
             low_th = (int(th[0] * 2.55), th[2] + 128, th[4] + 128)
             high_th = (int(th[1] * 2.55), th[3] + 128, th[5] + 128)
 
@@ -77,15 +78,16 @@ class Image:
 
             masks.append (mask)
 
-        #cv2.imshow ("a", mask)
-
         final_mask = masks [0].copy ()
 
         if (len (masks) > 1):
+            #print ("and")
             for m in masks [1:]:
                 final_mask = cv2.bitwise_and (final_mask, m)
 
         #print (final_mask.shape)
+
+        #cv2.imshow("a", final_mask)
 
         output = cv2.connectedComponentsWithStats (final_mask, 8, cv2.CV_32S)
 
@@ -98,6 +100,7 @@ class Image:
         blobs = []
 
         for label_num in range (1, sz):
+            #print ("cc processing")
             area = stats [label_num, cv2.CC_STAT_AREA]
             
             if (area >= pixels_threshold):
@@ -108,6 +111,54 @@ class Image:
 
                 #print ("append", area)
                 blobs.append (new_blob)
+
+        merges_num = 1
+
+        if (merge == True):
+            while (merges_num != 0):
+                #print ("merges not zero")
+                merges_num = 0
+
+                for i in range (len (blobs)):
+                #for b1 in blobs:
+                    if (merges_num != 0):
+                        break
+
+                    b1 = blobs [i]
+
+                    for j in range (i + 1, len (blobs)):
+                    #for b2 in blobs [1:]:
+                        if (merges_num != 0):
+                            break
+
+                        #print ("j", j)
+                        #print("merge true", len(blobs))
+                        b2 = blobs [j]
+
+                        dx = abs (b1.cx() - b2.cx())
+                        dy = abs (b1.cy() - b2.cy())
+                        sw = (b1.w() + b2.w()) / 2
+                        sh = (b1.h() + b2.h()) / 2
+
+                        #check for bounding boxes intersection with margin
+                        if (dx - margin < sw and dy - margin < sh):
+                            left = min (b1.x(), b2.x())
+                            top  = min (b1.y(), b2.y())
+
+                            right  = max (b1.x() + b1.w(), b2.x() + b2.w())
+                            bottom = max (b1.y() + b1.h(), b2.y() + b2.h())
+
+                            b3 = Blob (left, top, right - left, bottom - top)
+
+                            blobs.remove (b1)
+                            blobs.remove (b2)
+                            blobs.append (b3)
+
+                            merges_num += 1
+
+                            #print ("blobs num", len (blobs))
+
+                            continue
 
         return blobs
 
@@ -177,7 +228,11 @@ def main ():
         img = sensor.snapshot ()
 
         #blobs = img.find_blobs ((40, 80, -28, 72, -28, 72), 200, 20, True, 10)
-        blobs = img.find_blobs ([(35, 50, 15, 75, 50, 135)], 200, 20, True, 10)
+        #blobs = img.find_blobs ([(35, 50, 15, 75, 50, 135)], 200, 20, True, 10)
+
+        #(self, ths, pixels_threshold, area_threshold, merge, margin, invert = False):
+        blobs = img.find_blobs ([(92, 100, 0, 127, 0, 127)], pixels_threshold=20,
+                                area_threshold=20, merge = True, margin = 30)
 
         for blob in blobs:
             #print ("a")
